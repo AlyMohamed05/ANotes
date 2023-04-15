@@ -3,6 +3,7 @@ package com.silverbullet.anotes;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -73,6 +74,21 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, NewNoteActivity.class);
             newNoteLauncher.launch(intent);
         });
+
+        binding.searchNotes.setOnQueryTextListener(
+                new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        viewModel.setSearchQuery(newText);
+                        return true;
+                    }
+                }
+        );
 
         NoteClickListener noteClickListener = new NoteClickListener() {
             @Override
