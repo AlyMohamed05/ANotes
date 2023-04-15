@@ -3,12 +3,14 @@ package com.silverbullet.anotes;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.silverbullet.anotes.adapter.NotesListAdapter;
 import com.silverbullet.anotes.adapter.listener.NoteClickListener;
@@ -16,22 +18,25 @@ import com.silverbullet.anotes.core.model.Note;
 import com.silverbullet.anotes.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
 
-    private ActivityMainBinding binding;
     private NotesListAdapter adapter;
     private MainViewModel viewModel;
-    private NoteClickListener noteClickListener;
     private ActivityResultLauncher<Intent> newNoteLauncher;
+    private final List<Note> mNotes = new ArrayList<>();
+    private final CompositeDisposable disposables = new CompositeDisposable();
+    private Observer<List<Note>> observer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        com.silverbullet.anotes.databinding.ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
@@ -39,10 +44,14 @@ public class MainActivity extends AppCompatActivity {
         newNoteLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    if(result.getResultCode() == RESULT_OK){
+                    if (result.getResultCode() == RESULT_OK) {
                         Intent data = result.getData();
-                        Note note = data.getSerializableExtra("note", Note.class);
-                        // TODO: Save this new note
+                        if (data == null) {
+                            return;
+                        }
+                        Note note = (Note) data.getSerializableExtra("note");
+                        Log.d("MainActivity","Adding note");
+                        viewModel.saveNote(note);
                     }
                 });
 
@@ -51,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
             newNoteLauncher.launch(intent);
         });
 
-        noteClickListener = new NoteClickListener() {
+        NoteClickListener noteClickListener = new NoteClickListener() {
             @Override
             public void onClick(int noteId) {
                 // TODO: handle on note click
@@ -63,10 +72,28 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        ArrayList<Note> notes = new ArrayList<>(); // TODO: find another way to set initial value.
-        adapter = new NotesListAdapter(notes, noteClickListener);
+        observer = notes -> {
+            mNotes.clear();
+            mNotes.addAll(notes);
+            adapter.notifyDataSetChanged();
+        };
+
+        adapter = new NotesListAdapter(mNotes, noteClickListener);
 
         binding.recyclerNotes.setLayoutManager(new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL));
         binding.recyclerNotes.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        viewModel.notesLiveData().observe(this,observer);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        disposables.dispose();
+        viewModel.notesLiveData().removeObserver(observer);
     }
 }

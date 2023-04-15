@@ -9,18 +9,21 @@ import com.silverbullet.anotes.core.database.entity.NoteEntity;
 
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
+
 @Dao
 public interface NotesDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(NoteEntity note);
+    Completable insert(NoteEntity note);
 
     @Query("SELECT * FROM t_notes ORDER BY id DESC")
-    List<NoteEntity> getAll();
+    Observable<List<NoteEntity>> getAll();
 
     @Query("UPDATE t_notes SET title = :title, body = :body WHERE id = :id")
-    void update(int id, String title, String body);
+    Completable update(int id, String title, String body);
 
     @Query("DELETE FROM t_notes WHERE id = :id")
-    void deleteById(int id);
+    Completable deleteById(int id);
 }
