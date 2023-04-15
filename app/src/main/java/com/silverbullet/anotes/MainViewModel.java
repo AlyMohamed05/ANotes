@@ -40,7 +40,7 @@ public class MainViewModel extends ViewModel {
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
                                 notesLiveData::setValue,
-                                throwable -> Log.w("MainViewModel","Error in observing notes",throwable)
+                                throwable -> Log.w("MainViewModel", "Error in observing notes", throwable)
                         )
         );
     }
@@ -54,6 +54,19 @@ public class MainViewModel extends ViewModel {
                 repository
                         .create(note)
                         .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                () -> {
+                                },
+                                throwable -> Log.w("MainViewModel", "Failed to insert note", throwable)
+                        )
+        );
+    }
+
+    public void updateNote(Note note) {
+        disposable.add(
+                repository
+                        .updateNote(note)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
                                 () -> {

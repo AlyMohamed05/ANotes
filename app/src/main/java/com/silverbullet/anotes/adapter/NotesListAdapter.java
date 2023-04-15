@@ -58,10 +58,10 @@ class NoteViewHolder extends RecyclerView.ViewHolder {
     public void bind(@NonNull Note note, NoteClickListener listener) {
         binding.noteItem.setCardBackgroundColor(Color.RED);
 
-        binding.noteItem.setOnClickListener(v -> listener.onClick(note.getId()));
+        binding.noteItem.setOnClickListener(v -> listener.onClick(note));
 
         binding.noteItem.setOnLongClickListener(v -> {
-            listener.onLongClick(note.getId());
+            listener.onLongClick(note);
             return true;
         });
 

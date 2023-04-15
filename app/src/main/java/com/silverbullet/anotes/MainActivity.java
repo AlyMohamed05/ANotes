@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.silverbullet.anotes.adapter.NotesListAdapter;
 import com.silverbullet.anotes.adapter.listener.NoteClickListener;
@@ -29,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private NotesListAdapter adapter;
     private MainViewModel viewModel;
     private ActivityResultLauncher<Intent> newNoteLauncher;
+    private ActivityResultLauncher<Intent> editNoteLauncher;
     private final List<Note> mNotes = new ArrayList<>();
     private final CompositeDisposable disposables = new CompositeDisposable();
     private Observer<List<Note>> observer;
@@ -54,6 +54,21 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
+        editNoteLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if(result.getResultCode() != RESULT_OK){
+                        return;
+                    }
+                    Intent data = result.getData();
+                    if(data == null){
+                        return;
+                    }
+                    Note newNote = (Note) data.getSerializableExtra("updated_note");
+                    viewModel.updateNote(newNote);
+                }
+        );
+
         binding.fabNewNote.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, NewNoteActivity.class);
             newNoteLauncher.launch(intent);
@@ -61,12 +76,14 @@ public class MainActivity extends AppCompatActivity {
 
         NoteClickListener noteClickListener = new NoteClickListener() {
             @Override
-            public void onClick(int noteId) {
-                // TODO: handle on note click
+            public void onClick(Note note) {
+                Intent intent = new Intent(MainActivity.this,NewNoteActivity.class);
+                intent.putExtra("note",note);
+                editNoteLauncher.launch(intent);
             }
 
             @Override
-            public void onLongClick(int noteId) {
+            public void onLongClick(Note note) {
                 // TODO: handle on note long click
             }
         };

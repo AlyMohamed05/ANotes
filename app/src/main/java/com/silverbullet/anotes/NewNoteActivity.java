@@ -16,6 +16,8 @@ import java.util.Date;
 public class NewNoteActivity extends AppCompatActivity {
 
     private ActivityNewNoteBinding binding;
+    boolean isOldNote = false;
+    Note oldNote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,12 +37,28 @@ public class NewNoteActivity extends AppCompatActivity {
             SimpleDateFormat formatter = new SimpleDateFormat("EEE, d MM yyyy HH:mm");
             Date date = new Date();
 
-            Note note = new Note(0, title, body, formatter.format(date), false);
+            int noteId = 0;
+            if(oldNote != null){
+                noteId = oldNote.getId();
+            }
+
+            Note note = new Note(noteId, title, body, formatter.format(date), false);
 
             Intent intent = new Intent();
-            intent.putExtra("note", note);
+            if(isOldNote){
+                intent.putExtra("updated_note", note);
+            }else{
+                intent.putExtra("note", note);
+            }
             setResult(Activity.RESULT_OK, intent);
             finish();
         });
+
+        oldNote = (Note) getIntent().getSerializableExtra("note");
+        if(oldNote !=null){
+            isOldNote = true;
+            binding.editTitle.setText(oldNote.getTitle());
+            binding.editBody.setText(oldNote.getBody());
+        }
     }
 }

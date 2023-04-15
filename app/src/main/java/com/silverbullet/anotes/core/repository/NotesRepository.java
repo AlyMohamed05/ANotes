@@ -12,4 +12,6 @@ public interface NotesRepository {
     Observable<List<Note>> observeNotes();
 
     Completable create(Note note);
+
+    Completable updateNote(Note note);
 }

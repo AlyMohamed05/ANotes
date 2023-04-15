@@ -1,7 +1,9 @@
 package com.silverbullet.anotes.adapter.listener;
 
+import com.silverbullet.anotes.core.model.Note;
+
 public interface NoteClickListener{
 
-    void onClick(int noteId);
-    void onLongClick(int noteId);
+    void onClick(Note note);
+    void onLongClick(Note note);
 }
