@@ -43,17 +43,15 @@ public class NotesRepositoryImpl implements NotesRepository {
     }
 
     @Override
-    public void create(@NonNull Note note) {
-        Log.d("NoteRepository", "Creating a new note");
+    public Completable create(@NonNull Note note) {
         final NoteEntity noteEntity = new NoteEntity();
         noteEntity.setTitle(note.getTitle());
         noteEntity.setBody(note.getBody());
         noteEntity.setDate(note.getDate());
         noteEntity.setPinned(false);
-        Disposable d =dao
+        return dao
                 .insert(noteEntity)
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {}, throwable -> Log.w("NotesRepository","Error Inserting",throwable));
+                .observeOn(AndroidSchedulers.mainThread());
     }
 }

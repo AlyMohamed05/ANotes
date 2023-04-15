@@ -15,10 +15,7 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 @HiltViewModel
@@ -36,31 +33,16 @@ public class MainViewModel extends ViewModel {
         disposable = new CompositeDisposable();
         notesLiveData = new MutableLiveData<>();
 
-        repository
-                .observeNotes()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<List<Note>>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        disposable.add(d);
-                    }
-
-                    @Override
-                    public void onNext(@NonNull List<Note> notes) {
-                        notesLiveData.setValue(notes);
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        Log.w("MainViewModel","Error in Notes Observable",e);
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
+        disposable.add(
+                repository
+                        .observeNotes()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                notesLiveData::setValue,
+                                throwable -> Log.w("MainViewModel","Error in observing notes",throwable)
+                        )
+        );
     }
 
     public LiveData<List<Note>> notesLiveData() {
@@ -68,8 +50,17 @@ public class MainViewModel extends ViewModel {
     }
 
     public void saveNote(Note note) {
-         repository
-                .create(note);
+        disposable.add(
+                repository
+                        .create(note)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                () -> {
+                                },
+                                throwable -> Log.w("MainViewModel", "Failed to insert note", throwable)
+                        )
+        );
     }
 
     @Override

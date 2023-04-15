@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
                             return;
                         }
                         Note note = (Note) data.getSerializableExtra("note");
-                        Log.d("MainActivity","Adding note");
                         viewModel.saveNote(note);
                     }
                 });

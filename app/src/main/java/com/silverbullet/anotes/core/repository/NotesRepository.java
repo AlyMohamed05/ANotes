@@ -11,5 +11,5 @@ public interface NotesRepository {
 
     Observable<List<Note>> observeNotes();
 
-    void create(Note note);
+    Completable create(Note note);
 }
